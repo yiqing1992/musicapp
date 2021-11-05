@@ -1,27 +1,59 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import store from '@/store/index.js'
 
 Vue.use(VueRouter)
 
+const originalPush = VueRouter.prototype.push
+VueRouter.prototype.push = function push(location, onResolve, onReject) {
+    if (onResolve || onReject) return originalPush.call(this, location, onResolve, onReject)
+    return originalPush.call(this, location).catch(err => err)
+}
+
 const routes = [
   {
-    path: '/',
-    name: 'Home',
-    component: Home
+    path: '',
+    redirect: '/home'
   },
   {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    path: '/home',
+    name: 'Home',
+    component: () => import(/* webpackChunkName: "home" */ '../views/home/Home.vue')
+  },
+  {
+    path: '/video',
+    name: 'Video',
+    component: () => import(/* webpackChunkName: "video" */ '../views/video/Video.vue')
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    beforeEnter:(to, from, next) => {
+      //console.log(store.state.user)
+      if (to.name !== 'Login' && !store.state.user.isLogin) next({ name: 'Login' })
+      else next()
+      
+    },
+    component: () => import(/* webpackChunkName: "profile" */ '../views/profile/Profile.vue')
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import(/* webpackChunkName: "login" */ '../views/login/Login.vue')
   }
 ]
 
 const router = new VueRouter({
-  routes
+  routes,
 })
+
+// router.beforeEach((to, from, next) => {
+//   if(store.state.user.isLogin){
+//     next('/profile')
+//   }else{
+//     next('/login')
+//   }
+// })
+
 
 export default router
